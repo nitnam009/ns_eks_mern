@@ -1,56 +1,53 @@
 variable "vpc_name" {
-  default = "eks-vpc"
+  description = "The name of the VPC"
+  type        = string
+  default     = "my-vpc"
 }
 
 variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  description = "The CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "availability_zones" {
-  type    = list(string)
-  default = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
-}
-
-variable "public_subnets" {
-  type    = list(string)
-  default = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  description = "The availability zones"
+  type        = list(string)
+  default     = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
 }
 
 variable "private_subnets" {
-  type    = list(string)
-  default = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  description = "The private subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+}
+
+variable "public_subnets" {
+  description = "The public subnets"
+  type        = list(string)
+  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+}
+
+variable "environment" {
+  description = "The environment for the resources (e.g., dev, prod)"
+  type        = string
+  default     = "dev"
 }
 
 variable "cluster_name" {
-  default = "eks-cluster"
+  description = "The name of the EKS cluster"
+  type        = string
+  default     = "my-cluster"
 }
 
 variable "cluster_version" {
-  default = "1.27"
+  description = "The Kubernetes version for the EKS cluster"
+  type        = string
+  default     = "1.30"
 }
 
-variable "node_group_name" {
-  default = "eks-node-group"
+variable "eks_admin_role_arn" {
+  description = "The ARN of the IAM role for EKS admin access"
+  type        = string
 }
-
-variable "desired_capacity" {
-  default = 2
-}
-
-variable "max_size" {
-  default = 4
-}
-
-variable "min_size" {
-  default = 1
-}
-
-variable "instance_type" {
-  default = "t3.medium"
-}
-
-
-
-
-//
 
