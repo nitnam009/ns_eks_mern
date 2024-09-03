@@ -1,6 +1,6 @@
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
-  version = "5.13.0" 
+  version = "5.13.0"
 
   name = var.vpc_name
   cidr = var.vpc_cidr
@@ -12,11 +12,16 @@ module "vpc" {
   enable_nat_gateway = true
   enable_vpn_gateway = true
 
+  public_subnet_tags = {
+    AutoAssignPublicIp = "true"
+  }
+
   tags = {
     Terraform   = "true"
     Environment = var.environment
   }
 }
+
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
