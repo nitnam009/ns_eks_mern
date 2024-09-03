@@ -15,6 +15,7 @@ module "vpc" {
   public_subnet_tags = {
     AutoAssignPublicIp = "true"
   }
+  map_public_ip_on_launch = true
 
   tags = {
     Terraform   = "true"
