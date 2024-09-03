@@ -1,33 +1,49 @@
-# Create a separate workflow file (e.g., terraform-destroy.yml) for the destroy operation
-name: Terraform Destroy
+name: Delete EKS Cluster
 
 on:
-  workflow_dispatch: # Allows you to trigger the workflow manually
-
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: eu-north-1
-  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+  workflow_dispatch: # Trigger the workflow manually
 
 jobs:
-  destroy:
+  delete-eks-cluster:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          terraform_version: 1.5.0
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
 
-      - name: Terraform Init
-        run: terraform init -backend-config="bucket=${{ secrets.BUCKET_TF_STATE }}" -backend-config="region=${{ env.AWS_REGION }}"
+      - name: Delete Node Groups
+        run: |
+          # Fetch node groups for the cluster
+          NODEGROUPS=$(aws eks list-nodegroups --cluster-name my-cluster --query 'nodegroups' --output text)
+          for NODEGROUP in $NODEGROUPS; do
+            echo "Deleting node group $NODEGROUP"
+            aws eks delete-nodegroup --cluster-name my-cluster --nodegroup-name $NODEGROUP
+            # Wait for the node group to be fully deleted
+            aws eks wait nodegroup-deleted --cluster-name my-cluster --nodegroup-name $NODEGROUP
+          done
 
-      - name: Terraform Plan (Destroy)
-        run: terraform plan -destroy -out=tfplan -var "eks_admin_role_arn=arn:aws:iam::891377190847:role/eks-admin-role" -out=tfplan
+      - name: Delete Fargate Profiles (if any)
+        run: |
+          # Fetch Fargate profiles for the cluster
+          FARGATE_PROFILES=$(aws eks list-fargate-profiles --cluster-name my-cluster --query 'fargateProfileNames' --output text)
+          for PROFILE in $FARGATE_PROFILES; do
+            echo "Deleting Fargate profile $PROFILE"
+            aws eks delete-fargate-profile --cluster-name my-cluster --fargate-profile-name $PROFILE
+            # Wait for the Fargate profile to be fully deleted
+            aws eks wait fargate-profile-deleted --cluster-name my-cluster --fargate-profile-name $PROFILE
+          done
 
-      - name: Terraform Apply (Destroy)
-        run: terraform apply -auto-approve tfplan
+      - name: Delete EKS Cluster
+        run: |
+          echo "Deleting EKS cluster"
+          aws eks delete-cluster --name my-cluster
+          # Wait for the cluster to be fully deleted
+          aws eks wait cluster-deleted --name my-cluster
+          echo "EKS cluster deleted successfully"
+
