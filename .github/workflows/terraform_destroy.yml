@@ -27,7 +27,7 @@ jobs:
         run: terraform init -backend-config="bucket=${{ secrets.BUCKET_TF_STATE }}" -backend-config="region=${{ env.AWS_REGION }}"
 
       - name: Terraform Plan (Destroy)
-        run: terraform plan -destroy -out=tfplan
+        run: terraform plan -destroy -out=tfplan -var "eks_admin_role_arn=arn:aws:iam::891377190847:role/eks-admin-role" -out=tfplan
 
       - name: Terraform Apply (Destroy)
         run: terraform apply -auto-approve tfplan
